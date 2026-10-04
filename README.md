@@ -18,6 +18,8 @@ Historical retrieval becomes more accessible when an embodied agent can explain 
 
 This adjunct paper integrates a retrieval-augmented language model with a Unity-based 3D agent. Questions produce grounded historical answers delivered through synchronized voice and body motion. It is a separate publication from the related journal article.
 
+The retrieval path shares its research lineage with the separate [historical-analysis journal paper](https://github.com/ghazanPK/joseon-rag-journal); this repo adds the embodied presentation adapter while keeping its own citation and scope.
+
 ## Method at a glance
 
 **User question** → **Historical RAG** → **Embodied answer**
@@ -60,17 +62,18 @@ This repository combines article-preserving historical retrieval with a digital-
 
 This is an independent educational implementation. It is not the institute implementation and does not ship the Annals corpus, crawler output, API credentials, embedding cache, model weights, benchmark, or prompts.
 
-### Run the offline example
+### Start the embodied evidence demo
 
 ```powershell
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 python -m pip install -e .
-python scripts/smoke.py
-start outputs/smoke/agent/agent-demo.html
+python scripts/prepare_viewer.py
+joseon-agent build examples/articles.jsonl --out outputs/demo.index.json
+joseon-agent serve outputs/demo.index.json --events examples/events.json
 ```
 
-The answer JSON includes claims, citations, filter and ranking trace. `agent-events.json` is an engine-neutral integration contract; `agent-demo.html` visualizes it. The motion and mouth timing are functional adapter baselines rather than reproduced Unity animation. The included corpus is an authored artificial schema fixture, not Annals text or evidence for historical claims.
+Open `http://127.0.0.1:8766` to inspect cited evidence and play the procedural 3D avatar. The included articles are authored interface examples, not Annals records. For an offline JSON/event check, run `python scripts/verify.py`; `outputs/verify/agent/agent-events.json` contains the engine-neutral integration contract. Motion and mouth timing remain adapter baselines rather than reproduced Unity animation.
 
 ### Bring your own public corpus
 
@@ -82,10 +85,34 @@ Download records through the official National Institute of Korean History servi
 
 `year`, `month`, and `day` columns may replace `date`. Keep downloads under ignored `data/`. This code does not crawl the site because endpoint structure and access policy can change.
 
-After exporting real articles with that contract, run `joseon-agent build data/articles.jsonl --out outputs/my.index.json`, then `joseon-agent ask outputs/my.index.json "your question" --events examples/events.json --out outputs/my-answer.json --agent-out outputs/my-agent`. The smoke script uses the same loader, retrieval, answer, citation, and digital-human adapter paths.
+After exporting real articles with that contract, run `joseon-agent build data/articles.jsonl --out outputs/my.index.json`, then `joseon-agent ask outputs/my.index.json "your question" --events examples/events.json --out outputs/my-answer.json --agent-out outputs/my-agent`. The verify script uses the same loader, retrieval, answer, citation, and digital-human adapter paths.
 
 The default index is an honestly labeled TF-IDF baseline. For a cache-only sentence-transformer, install `python -m pip install -e ".[semantic]"` and run `joseon-agent build data/articles.jsonl --out outputs/semantic.index.json --backend sentence-transformer --model path-or-cached-model-name`. The loader uses `local_files_only=True` and fails rather than downloading weights. The CLI also supports a user-run OpenAI-compatible endpoint or local JSON-in/query-out command adapter.
 
 Extractive generation is the default. `--generator endpoint --base-url http://localhost:8000/v1 --model your-model` sends a source-labeled evidence prompt to a user-operated compatible endpoint. `--generator command --generator-command "your-program --json"` uses a local JSON adapter. Their text is explicitly marked unverified and should be checked against returned source IDs before digital-human playback.
 
 This baseline cannot reproduce the reported evaluation scores. It does not know that an inferred date is historically correct, and the primary source may contain variant or conflicting accounts. Inspect citations and the trace. See [REQUIREMENTS.md](REQUIREMENTS.md) for the paper/assumption boundary.
+
+
+### Browser demo and selected-page import
+
+The CLI and local browser share the same article-preserving index and retrieval code. The bundled articles are authored demonstration text, not historical records. After installing the package:
+
+```powershell
+joseon-agent build examples/articles.jsonl --out outputs/demo.index.json
+joseon-agent serve outputs/demo.index.json --events examples/events.json
+```
+
+Open http://127.0.0.1:8766 to inspect rewritten questions, date filters, selected full articles, scores, token use and cited answers. Playback exposes timed speech and motion events alongside the evidence. Add `--base-url http://127.0.0.1:8000/v1 --model your-model` to enable model-powered rewrite and grounded generation controls; inspect model output against the source articles.
+
+For a single public article you have selected and are permitted to use, import saved HTML or fetch that exact URL. The URL, manually supplied article ID/date, and extracted text are kept in each JSONL record. Review the extraction before building; complex pages may include navigation or omit JavaScript-rendered text.
+
+```powershell
+joseon-agent import-html "https://sillok.history.go.kr/your-selected-article" --file data/selected-article.html --id selected-id --date 1420-05-12 --title "Article title" --out data/articles.jsonl
+joseon-agent build data/articles.jsonl --out outputs/my.index.json
+joseon-agent serve outputs/my.index.json --events examples/events.json
+```
+
+### 3D playback and optional local speech
+
+The quickstart prepares pinned Three.js 0.170.0 in ignored `static/vendor/`. The character is generated procedurally in code; no original Unity avatar or animation asset is included. Browser speech works without model downloads. For optional local Kokoro TTS and faster-whisper ASR, run `python -m pip install -e ".[speech]"`, install the English phonemizer requirements from [Kokoro's setup guide](https://github.com/hexgrad/kokoro) (including `espeak-ng` where required), then set `KOKORO_MODEL_DIR` to a local folder containing `config.json`, `kokoro-v1_0.pth`, and `voices/af_heart.pt`. Set `WHISPER_MODEL_DIR` to a local converted faster-whisper folder containing `model.bin`. Audio upload transcribes locally only when ASR is configured; typed input remains available. Timed motion is a research adapter, not recovered Unity animation.

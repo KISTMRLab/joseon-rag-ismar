@@ -12,4 +12,4 @@ The public implementation provides the paper-supported retrieval path plus a dis
 
 ## Assumptions and substitutions
 
-This is independent educational code. TF-IDF, extractive answers, reranking, inferred-date widening, sentence timing, alternating open/closed mouth markers, rule-selected motion labels, and the SVG face are explicit baselines/adapters. They do not reproduce the paper's GPT services, STT/TTS, Unity scene, lip-sync system, animation generator, models, assets, benchmark scores, or institute implementation.
+This is independent educational code. TF-IDF, extractive answers, reranking, inferred-date widening, sentence timing, alternating open/closed mouth markers, rule-selected motion labels, and the procedural Three.js character are explicit baselines/adapters. Browser speech and optional user-configured local STT/TTS can play the event contract. They do not reproduce the paper's GPT services, Unity scene, lip-sync system, animation generator, models, assets, benchmark scores, or institute implementation.
