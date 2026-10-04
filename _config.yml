@@ -1,0 +1,17 @@
+title: "Joseon RAG adjunct"
+description: "An embodied agent makes historical source retrieval conversational."
+markdown: kramdown
+kramdown:
+  input: GFM
+exclude:
+  - src
+  - tests
+  - .venv
+  - data
+  - runs
+  - outputs
+  - checkpoints
+  - pyproject.toml
+  - requirements.txt
+  - package.json
+  - package-lock.json
