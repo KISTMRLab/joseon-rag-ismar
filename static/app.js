@@ -1,7 +1,7 @@
-import { createStage } from "/static/avatar.js?v=20261006-paper2";
-import { Speech } from "/static/speech.js?v=20261006-paper2";
-import {prepareApplicationMotion,gestureSummary} from "/static/application-gesture.js?v=20261006-paper2";
-import { setupVoiceInput } from "/static/voice-input.js?v=20261006-paper2";
+import { createStage } from "/static/avatar.js?v=20261006-paper3";
+import { Speech } from "/static/speech.js?v=20261006-paper3";
+import {prepareApplicationMotion,gestureSummary} from "/static/application-gesture.js?v=20261006-paper3";
+import { setupVoiceInput } from "/static/voice-input.js?v=20261006-paper3";
 
 const $ = selector => document.querySelector(selector);
 const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, char => ({
