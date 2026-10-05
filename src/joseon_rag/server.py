@@ -5,6 +5,7 @@ import argparse
 import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from .avatar_http import serve_avatar_asset
 
 from .core import (OpenAICompatibleGenerator, OpenAICompatibleRegenerator,
                    RuleRegenerator, answer, retrieve)
@@ -21,6 +22,7 @@ def create_handler(index_path: Path, events_path: Path | None = None,
 
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self):
+            if serve_avatar_asset(self, Path(__file__).resolve().parents[2] / "static"): return
             if self.path == "/":
                 self.send_response(200); self.send_header("Content-Type", "text/html; charset=utf-8")
                 self.send_header("Content-Length", str(len(page))); self.end_headers(); self.wfile.write(page)
