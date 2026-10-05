@@ -1,5 +1,5 @@
-import { createStage } from "/static/avatar.js";
-import { Speech } from "/static/speech.js";
+import { createStage } from "/static/avatar.js?v=20261005-gesture7";
+import { Speech } from "/static/speech.js?v=20261005-gesture7";
 
 const $ = selector => document.querySelector(selector);
 const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, char => ({
@@ -30,6 +30,7 @@ function waitDuration(milliseconds) {
 function ensureStage() {
   if (!stage) {
     stage = createStage($("#avatar-canvas"));
+    stage.camera.position.set(0,1.5,3.6);stage.camera.lookAt(0,1,0);
     speech = new Speech(stage);
   }
   $("#avatar-stage").classList.add("active");
@@ -71,13 +72,15 @@ $("#play").onclick = async () => {
   const generation = playGeneration;
   const backend = $("#speech-backend").value;
   try {
+    await stage.ready;
     for (const event of result.agent.events) {
       if (generation !== playGeneration) return;
-      stage.gesture(event.motion);
-      $("#motion").textContent = `Gesture: ${event.motion}`;
-      await speech.speak(event.text, {backend});
+      await speech.speak(event.text, {backend,
+        onStart:()=>{stage.gesture(event.motion);$("#motion").textContent = `Speaking · Gesture: ${event.motion}`;},
+        onEnd:()=>stage.gesture('idle')
+      });
       if (generation !== playGeneration) return;
-      await waitDuration(event.duration * 1000);
+      // Speech completion already awaited; do not add the estimated duration.
     }
     if (generation === playGeneration) { stage.gesture("idle"); stage.setSpeech(false); $("#motion").textContent = "Playback complete"; }
   } catch (error) {
