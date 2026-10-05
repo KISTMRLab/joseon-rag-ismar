@@ -1,6 +1,6 @@
-import { createStage } from "/static/avatar.js?v=20261005-beat2";
-import { Speech } from "/static/speech.js?v=20261005-beat2";
-import {prepareApplicationMotion,gestureSummary} from "/static/application-gesture.js?v=20261005-beat2";
+import { createStage } from "/static/avatar.js?v=20261006-paper1";
+import { Speech } from "/static/speech.js?v=20261006-paper1";
+import {prepareApplicationMotion,gestureSummary} from "/static/application-gesture.js?v=20261006-paper1";
 import { setupVoiceInput } from "/static/voice-input.js?v=20261006";
 
 const $ = selector => document.querySelector(selector);
