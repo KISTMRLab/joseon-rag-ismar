@@ -1,6 +1,7 @@
 import { createStage } from "/static/avatar.js?v=20261005-beat2";
 import { Speech } from "/static/speech.js?v=20261005-beat2";
 import {prepareApplicationMotion,gestureSummary} from "/static/application-gesture.js?v=20261005-beat2";
+import { setupVoiceInput } from "/static/voice-input.js?v=20261006";
 
 const $ = selector => document.querySelector(selector);
 const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, char => ({
@@ -84,7 +85,7 @@ $("#play").onclick = async () => {
       if(generation!==playGeneration)return;
       activeMotion=selected?.motion||null;
       await speech.speak(event.text,{backend,
-        onStart:()=>{activeMotion?.onStart();$("#motion").textContent=selected?`Speaking · ${gestureSummary(selected.data)}`:'Speaking · no recorded co-speech clip';},
+        onStart:()=>{activeMotion?.onStart();const sources=event.citations?.length?` · sources ${event.citations.join(", ")}`:"";$("#motion").textContent=(selected?`Speaking · ${gestureSummary(selected.data)}`:'Speaking · no recorded co-speech clip')+sources;},
         onProgress:clock=>activeMotion?.onProgress(clock),
         onEnd:()=>{activeMotion?.onEnd();activeMotion=null;stage.clearMotion();stage.gesture('idle');}
       });
@@ -99,16 +100,7 @@ $("#play").onclick = async () => {
   }
 };
 
-$("#transcribe").onclick = async () => {
-  const file = $("#audio-input").files[0];
-  if (!file) { $("#transcribe-status").textContent = "Choose an audio file first"; return; }
-  try {
-    const transcription = await new Speech().transcribe(file);
-    $("#query").value = transcription.text;
-    $("#transcribe-status").textContent = `Transcribed with ${transcription.backend}`;
-  } catch (error) {
-    $("#transcribe-status").textContent = error.message;
-  }
-};
+// Microphone recording or an audio file is transcribed by the local /api/asr backend.
+const stopVoiceInput = setupVoiceInput(new Speech(), $("#query"), $("#record"), $("#audio-input"), $("#transcribe-status"));
 
-window.addEventListener("pagehide", () => { stopPlayback(); stage?.dispose(); stage = null; });
+window.addEventListener("pagehide", () => { stopVoiceInput(); stopPlayback(); stage?.dispose(); stage = null; });

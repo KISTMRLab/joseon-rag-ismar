@@ -8,11 +8,34 @@ The full journal paper was also read as shared retrieval-architecture context. D
 
 ## Functional requirements
 
-The public implementation provides the paper-supported retrieval path plus a distinct integration artifact: timed utterances, coarse response-conditioned body-motion labels, lip/viseme timing markers, citations, and a portable browser demonstrator suitable for replacing with user-owned STT/TTS/avatar components.
+The public implementation provides the paper-supported retrieval path and a distinct integration artifact. The retrieval path covers:
+
+- a polite, resumable Sejong Annals crawler with lunar-date metadata;
+- whole-article chunks;
+- exact, partial and range date filtering;
+- maximum-token packing;
+- a similarity floor with explicit abstention;
+- cited facts plus contextual analysis.
+
+The integration artifact consists of:
+
+- timed utterances whose spoken text is citation-free, with source IDs kept as per-utterance metadata;
+- descriptive motion labels;
+- microphone or file speech input through a local STT endpoint;
+- a portable browser demonstrator suitable for replacing with user-owned STT/TTS/avatar components.
 
 ## Assumptions and substitutions
 
-This is independent educational code. TF-IDF, extractive answers, reranking, inferred-date widening, sentence timing, alternating open/closed mouth markers, rule-selected motion labels, and the bundled fictional CC0 Three.js character are explicit baselines/adapters. Browser speech and optional user-configured local STT/TTS can play the event contract. They do not reproduce the paper's GPT services, Unity scene, lip-sync system, animation generator, models, assets, benchmark scores, or institute implementation.
+This is independent educational code. The following are explicit baselines or adapters:
+
+- Korean-aware TF-IDF (character bigrams), extractive answers and reranking;
+- inferred-date widening and the similarity floors;
+- fit-or-stop packing and a tiktoken-or-conservative token count;
+- sentence timing and rule-selected motion labels;
+- prompts written from the paper's description;
+- the bundled fictional CC0 Three.js character.
+
+In the browser, body motion comes from BEAT co-speech retrieval and mouth motion from the shared speech renderer; the motion labels are metadata only. Browser speech and optional user-configured local STT/TTS can play the event contract. None of this reproduces the paper's GPT services, Unity scene, lip-sync system, animation generator, models, assets, benchmark scores, or institute implementation. The adjunct paper's Table 1 reports the same scores as the related journal article; this repository does not reproduce them.
 
 ## Bundled fictional avatar substitution
 

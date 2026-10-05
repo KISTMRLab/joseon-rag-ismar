@@ -32,5 +32,9 @@ class BrowserAPITest(unittest.TestCase):
                 self.assertEqual(result["citations"][0]["url"], "https://example.org/a")
                 self.assertEqual(result["trace"]["evidence"][0]["article"]["id"], "a")
                 self.assertTrue(result["agent"]["events"])
+                self.assertTrue(all("[" not in e["text"] for e in result["agent"]["events"]))
+                self.assertIn("a", result["agent"]["events"][0]["citations"])
+                with urllib.request.urlopen(f"http://127.0.0.1:{server.server_port}/static/voice-input.js") as response:
+                    self.assertIn(b"setupVoiceInput", response.read())
             finally:
                 server.shutdown(); server.server_close(); thread.join()

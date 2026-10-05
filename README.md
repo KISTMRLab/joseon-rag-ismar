@@ -38,7 +38,7 @@ Comparison on factual accuracy, reliability, and reasonableness against the pape
 
 **Study context:** Annals corpus of 49,646,667 characters; 30 benchmark questions.
 
-**Limitations:** A 30-question historical benchmark is limited in scope; the journal’s measurements should not be treated as measurements of this adjunct paper.
+**Limitations:** A 30-question historical benchmark is limited in scope. The adjunct paper's Table 1 reports the same scores as the related journal article.
 
 ## Explore the implementation
 
@@ -79,11 +79,11 @@ The application uses `wild` retrieval for recorded co-speech motion: a current p
 
 <!-- implementation-guide -->
 
-This repository combines article-preserving historical retrieval with a digital-human integration artifact. In addition to cited answers and an auditable retrieval trace, it emits timed speech segments, response-conditioned body-motion labels, lip markers, and a portable avatar adapter demo.
+This repository combines article-preserving historical retrieval with a digital-human integration artifact. In addition to cited answers and an auditable retrieval trace, it emits timed speech utterances and a portable avatar adapter demo. The utterances are citation-free text for speech, with their source IDs kept as event metadata. Questions can be typed, recorded from the microphone, or uploaded as audio.
 
 **Citation.** Jeong Ha Lee, Ghazanfar Ali, and Jae-In Hwang. “RAG based AI-Agent for Contextualized Analysis of High-Density Historical Records: Application to the Annals of the Joseon Dynasty.” *2025 IEEE International Symposium on Mixed and Augmented Reality Adjunct (ISMAR-Adjunct)* (2025). [https://doi.org/10.1109/ISMAR-Adjunct68609.2025.00243](https://doi.org/10.1109/ISMAR-Adjunct68609.2025.00243). Status: published.
 
-This is an independent educational implementation. It is not the institute implementation and does not ship the Annals corpus, crawler output, API credentials, embedding cache, model weights, benchmark, or prompts.
+This is an independent educational implementation. It is not the institute implementation and does not ship the Annals corpus, crawler output, API credentials, embedding cache, model weights, benchmark, or the paper's original prompts. The prompts in `src/joseon_rag/core.py` (`PROMPT_PROFILES`, profile `ismar`) were written from the paper's description.
 
 ### Start the embodied evidence demo
 
@@ -96,25 +96,40 @@ joseon-agent build examples/articles.jsonl --out outputs/demo.index.json
 joseon-agent serve outputs/demo.index.json --events examples/events.json
 ```
 
-Open `http://127.0.0.1:8766` to inspect cited evidence and play a bundled fictional CC0 3D avatar. The included articles are authored interface examples, not Annals records. For an offline JSON/event check, run `python scripts/verify.py`; `outputs/verify/agent/agent-events.json` contains the engine-neutral integration contract. Motion and mouth timing remain adapter baselines rather than reproduced Unity animation.
+Open `http://127.0.0.1:8766` to inspect cited evidence and play a bundled fictional CC0 3D avatar. The included articles are authored interface examples, not Annals records. For an offline JSON/event check, run `python scripts/verify.py`. `outputs/verify/agent/agent-events.json` contains the engine-neutral integration contract (`paperreach.joseon.digital-human.v2`). Each utterance has citation-free `text`, its `citations`, a `section` (`facts`, `analysis` or `abstention`), estimated `start`/`duration`, and a descriptive `motion_label`. In the browser demo, body motion comes from BEAT co-speech retrieval and mouth motion from the speech renderer. The labels are metadata for other engines, not reproduced Unity animation.
 
-### Bring your own public corpus
+### Build the Sejong Annals corpus
 
-Download records through the official National Institute of Korean History service: [Annals of the Joseon Dynasty](https://sillok.history.go.kr/). Follow the site's current access terms and robots/API guidance. Export one article per JSONL row (or CSV row) with:
+`joseon-agent crawl` builds the corpus locally from the official National Institute of Korean History service, [Annals of the Joseon Dynasty](https://sillok.history.go.kr/). It reads the Sejong month index, each lunar month's article list and each article page, and writes one JSONL record per article:
 
-```json
-{"id":"stable-id","date":"YYYY-MM-DD","title":"article title","text":"complete article text","source_url":"https://...","volume":"optional"}
+```powershell
+joseon-agent crawl --out data/sejong.jsonl --cache data/sillok-cache --years 2 --max-articles 20
+joseon-agent crawl --out data/sejong.jsonl --cache data/sillok-cache            # full reign; rerun to resume
+joseon-agent build data/sejong.jsonl --out outputs/sejong.index.json
 ```
 
-`year`, `month`, and `day` columns may replace `date`. Keep downloads under ignored `data/`. This code does not crawl the site because endpoint structure and access policy can change.
+- **Politeness.** Requests are at least 1 s apart (default 1.5 s). The crawler re-reads `robots.txt` on every run and stops on HTTP 401/403 or persistent 429/5xx responses.
+- **Resuming.** Every page is cached under `--cache`. Reruns skip article IDs already written. `--offline` parses only the cache.
+- **Scale.** The index lists 391 lunar months, and the paper reports 30,949 Sejong articles, so a full crawl takes at least 13 hours.
+- **Dates.** Dates stay lunar. `year` is the printed Western year (세종 N년 = 1418 + N; 즉위년 = 1418), and `month`/`day` are the lunar month and day. `leap_month` and the page's own date line (`date_original`) are kept. `--include-hanja` adds the classical-Chinese original.
+- **Terms.** On 6 October 2026 `robots.txt` returned an HTML not-found page with no crawl directives. The Korean translation is marked "ⓒ 세종대왕기념사업회" and the original text carries a KOGL (공공누리) mark. Follow the site's current terms, keep data under ignored `data/`, and do not redistribute it.
 
-After exporting real articles with that contract, run `joseon-agent build data/articles.jsonl --out outputs/my.index.json`, then `joseon-agent ask outputs/my.index.json "your question" --events examples/events.json --out outputs/my-answer.json --agent-out outputs/my-agent`. The verify script uses the same loader, retrieval, answer, citation, and digital-human adapter paths.
+The parser was checked on 6 October 2026 against the live month index, one article list and three article pages. Tests use authored fixtures with the same markup.
 
-The default index is an honestly labeled TF-IDF baseline. For a cache-only sentence-transformer, install `python -m pip install -e ".[semantic]"` and run `joseon-agent build data/articles.jsonl --out outputs/semantic.index.json --backend sentence-transformer --model path-or-cached-model-name`. The loader uses `local_files_only=True` and fails rather than downloading weights. The CLI also supports a user-run OpenAI-compatible endpoint or local JSON-in/query-out command adapter.
+Other sources can use the same contract, one article per JSONL (or CSV) row: `{"id","date":"YYYY-MM-DD","title","text","source_url","volume"}`. `year`/`month`/`day` may replace `date`. Then run `joseon-agent ask outputs/sejong.index.json "your question" --events examples/events.json --out outputs/my-answer.json --agent-out outputs/my-agent`. The verify script uses the same loader, retrieval, answer, citation, and digital-human adapter paths.
 
-Extractive generation is the default. `--generator endpoint --base-url http://localhost:8000/v1 --model your-model` sends a source-labeled evidence prompt to a user-operated compatible endpoint. `--generator command --generator-command "your-program --json"` uses a local JSON adapter. Their text is explicitly marked unverified and should be checked against returned source IDs before digital-human playback.
+### Retrieval and generation
 
-This baseline cannot reproduce the reported evaluation scores. It does not know that an inferred date is historically correct, and the primary source may contain variant or conflicting accounts. Inspect citations and the trace. See [REQUIREMENTS.md](REQUIREMENTS.md) for the paper/assumption boundary.
+- **Lexical default.** The default TF-IDF index tokenizes Hangul and Hanja as character bigrams, so particles such as 의 do not block a match.
+- **Dense option.** `--backend sentence-transformer --model path-or-cached-model-name` needs `pip install -e ".[semantic]"`; use a multilingual model for Korean. It loads a cache-only model once and searches one float32 numpy matrix.
+- **Date filter.** The filter understands ISO, Korean, English month-name and Sejong reign-year dates. It never treats a bare number as a year, and filters ranges as ranges.
+- **Similarity floor and packing.** A similarity floor (`--min-similarity`) keeps unrelated articles out. Fit-or-stop packing fills `--token-budget` with whole articles in strict rank order. Tokens are counted with `tiktoken` when installed, otherwise with a conservative Korean-aware estimate.
+- **Extractive answers.** The default answer is extractive: cited objective facts, then a contextual-analysis section that only states the cited dates. It abstains (`INSUFFICIENT EVIDENCE:`) for non-existent events, for questions whose date contradicts the records (naming the records' date), or when no evidence fits.
+- **Model endpoint.** `--generator endpoint --base-url http://localhost:8000/v1 --model your-model` uses the `ismar` prompt profile: short spoken sentences, cited facts, a brief contextual analysis and the same abstention rules. `--regenerator endpoint` adds event details and an approximate date when the question has none.
+- **o1-compatible requests.** `--chat-style reasoning` (or `auto` with an `o1`/`o3`-style model name) sends a `developer` message without `temperature`.
+- **Checking model output.** Adapter outputs are marked unverified. Check their source IDs before digital-human playback.
+
+This baseline cannot reproduce the reported evaluation scores. It does not know whether an inferred date is historically correct, and the primary source may contain variant or conflicting accounts. Inspect citations and the trace. See [REQUIREMENTS.md](REQUIREMENTS.md) for the paper/assumption boundary.
 
 
 ### Browser demo and selected-page import
@@ -126,9 +141,9 @@ joseon-agent build examples/articles.jsonl --out outputs/demo.index.json
 joseon-agent serve outputs/demo.index.json --events examples/events.json
 ```
 
-Open http://127.0.0.1:8766 to inspect rewritten questions, date filters, selected full articles, scores, token use and cited answers. Playback exposes timed speech and motion events alongside the evidence. Add `--base-url http://127.0.0.1:8000/v1 --model your-model` to enable model-powered rewrite and grounded generation controls; inspect model output against the source articles.
+Open http://127.0.0.1:8766 to inspect rewritten questions, date filters, selected full articles, scores, token use and cited answers. Playback speaks the timed utterances with retrieved BEAT co-speech motion alongside the evidence. Add `--base-url http://127.0.0.1:8000/v1 --model your-model` to enable model-powered rewrite and grounded generation controls; inspect model output against the source articles.
 
-For a single public article you have selected and are permitted to use, import saved HTML or fetch that exact URL. The URL, manually supplied article ID/date, and extracted text are kept in each JSONL record. Review the extraction before building; complex pages may include navigation or omit JavaScript-rendered text.
+For a single public article you have selected and are permitted to use, import saved HTML or fetch that exact URL. The URL, manually supplied article ID/date, and extracted text are kept in each JSONL record. Annals article pages are read with the crawler's article-block parser. Other pages use `<article>`/`<main>` content when present and never include the page `<title>` in the text. Review the extraction before building; complex pages may include navigation or omit JavaScript-rendered text.
 
 ```powershell
 joseon-agent import-html "https://sillok.history.go.kr/your-selected-article" --file data/selected-article.html --id selected-id --date 1420-05-12 --title "Article title" --out data/articles.jsonl
@@ -138,7 +153,7 @@ joseon-agent serve outputs/my.index.json --events examples/events.json
 
 ### 3D playback and optional local speech
 
-The quickstart prepares pinned Three.js 0.170.0 in ignored `static/vendor/`. The browser includes two fictional CC0 characters and locally retrieved BEAT motion; no original Unity avatar or animation asset is included. Browser speech works without model downloads. For optional local Kokoro TTS and faster-whisper ASR, run `python -m pip install -e ".[speech]"`, install the English phonemizer requirements from [Kokoro's setup guide](https://github.com/hexgrad/kokoro) (including `espeak-ng` where required), then set `KOKORO_MODEL_DIR` to a local folder containing `config.json`, `kokoro-v1_0.pth`, and `voices/af_heart.pt`. Set `WHISPER_MODEL_DIR` to a local converted faster-whisper folder containing `model.bin`. Audio upload transcribes locally only when ASR is configured; typed input remains available. Timed motion is a research adapter, not recovered Unity animation.
+The quickstart prepares pinned Three.js 0.170.0 in ignored `static/vendor/`. The browser includes two fictional CC0 characters and locally retrieved BEAT motion; no original Unity avatar or animation asset is included. Browser speech works without model downloads. For optional local Kokoro TTS and faster-whisper ASR, run `python -m pip install -e ".[speech]"`, install the English phonemizer requirements from [Kokoro's setup guide](https://github.com/hexgrad/kokoro) (including `espeak-ng` where required), then set `KOKORO_MODEL_DIR` to a local folder containing `config.json`, `kokoro-v1_0.pth`, and `voices/af_heart.pt`. Set `WHISPER_MODEL_DIR` to a local converted faster-whisper folder containing `model.bin`. **Record question** captures the microphone in the browser (MediaRecorder) and sends the recording to the local `/api/asr` endpoint; an audio file can be chosen instead. Both transcribe only when ASR is configured, and typed input remains available. The bundled Kokoro voice is English, so use browser speech for Korean answers. Utterances are spoken without their bracketed source IDs; the status line shows each utterance's sources. Timed motion is a research adapter, not recovered Unity animation.
 
 <!-- avatar-recorded-motion:start -->
 ## Bundled characters and recorded public motion

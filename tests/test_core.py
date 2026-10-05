@@ -49,4 +49,29 @@ class RagTest(unittest.TestCase):
         idx = build_index([Article("large", "word " * 100, year=1652)])
         self.assertEqual(retrieve(idx, "1652 word", "1652 word", 5)["evidence"], [])
 
+
+class AgentEventTest(unittest.TestCase):
+    def test_citations_removed_from_speech_and_bound_to_their_sentence(self):
+        # Audit failure: "Fact one. [a] Fact two. [b]" was split so that "[a]" opened the next utterance.
+        result = {"answer": "Objective facts:\n- Fact one about scholars. [a]\n- Fact two about ships. [b]\n\nContextual analysis:\nBoth were court matters [a, b].",
+                  "citations": [{"id": "a"}, {"id": "b"}], "trace": {"evidence": []}}
+        events = agent_events(result)["events"]
+        self.assertEqual([e["text"] for e in events], ["Fact one about scholars.", "Fact two about ships.", "Both were court matters."])
+        self.assertEqual([e["citations"] for e in events], [["a"], ["b"], ["a", "b"]])
+        self.assertEqual([e["section"] for e in events], ["facts", "facts", "analysis"])
+        self.assertTrue(all("[" not in e["text"] and "visemes" not in e and e["motion_label"] for e in events))
+
+    def test_inline_and_unknown_citations_are_not_spoken(self):
+        result = {"answer": "The hall was founded [k_1]. It trained scholars [ghost].","citations": [{"id": "k_1"}], "trace": {"evidence": []}}
+        events = agent_events(result)["events"]
+        self.assertEqual(events[0]["text"], "The hall was founded."); self.assertEqual(events[0]["citations"], ["k_1"])
+        self.assertEqual(events[1]["text"], "It trained scholars."); self.assertEqual(events[1]["citations"], [])
+
+    def test_abstention_is_spoken_without_marker(self):
+        idx = build_index([Article("a", "Scholars discussed education.", "Hall", 1420, 5, 12)])
+        result = answer(retrieve(idx, "Tell me about the moon landing", "Tell me about the moon landing", 500))
+        data = agent_events(result)
+        self.assertTrue(data["abstained"]); self.assertNotIn("INSUFFICIENT", data["events"][0]["text"])
+        self.assertEqual(data["events"][0]["section"], "abstention")
+
 if __name__ == "__main__": unittest.main()
