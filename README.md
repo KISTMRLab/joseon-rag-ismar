@@ -42,7 +42,7 @@ Comparison on factual accuracy, reliability, and reasonableness against the pape
 
 ## Explore the implementation
 
-The historical retrieval core plus timed digital-human presentation events and a schematic browser agent; native Unity rendering is outside this implementation.
+The historical retrieval core plus timed digital-human presentation events, spoken answers without citation IDs, microphone questions and a 3D browser agent; native Unity rendering is outside this implementation.
 
 This repository contains independently written research code. The institute's original source, datasets and trained models are not distributed. Public-data preparation, commands, assumptions and checks are documented below and in [REQUIREMENTS.md](REQUIREMENTS.md).
 
@@ -67,7 +67,7 @@ python -m pip install -r scripts/requirements-demo.txt
 python scripts/start_demo.py
 ```
 
-Open **http://127.0.0.1:8080/**. Click **Search evidence** on the prefilled question, then **Speak answer** to play the cited answer through the avatar. The launcher prepares pinned Three.js modules and downloads one small official BEAT BVH/TextGrid sample on first run. It builds a nine-clip local bank and fits the Wild Pose Matching adapter under ignored `outputs/beat-library/`; later runs reuse the cache. The first run needs internet access. Original recordings, large datasets, institute assets, and pretrained gesture weights are not distributed.
+Open **http://127.0.0.1:8080/**. Click **Search evidence** on the prefilled question, then **Speak answer** to play the cited answer through the avatar; source IDs are shown in the status line rather than spoken. **Record question** sends a microphone recording to the local ASR endpoint when faster-whisper is configured (see below); typed questions always work. The launcher prepares pinned Three.js modules and downloads one small official BEAT BVH/TextGrid sample on first run. It builds a nine-clip local bank and fits the Wild Pose Matching adapter under ignored `outputs/beat-library/`; later runs reuse the cache. The first run needs internet access. Original recordings, large datasets, institute assets, and pretrained gesture weights are not distributed. The launcher also builds the small authored retrieval index.
 
 The 3D presentation uses shared Three.js avatar components and bundled fictional CC0 characters. The paper-specific algorithms and data adapters live in this repository.
 
