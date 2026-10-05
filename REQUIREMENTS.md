@@ -12,8 +12,12 @@ The public implementation provides the paper-supported retrieval path plus a dis
 
 ## Assumptions and substitutions
 
-This is independent educational code. TF-IDF, extractive answers, reranking, inferred-date widening, sentence timing, alternating open/closed mouth markers, rule-selected motion labels, and the procedural Three.js character are explicit baselines/adapters. Browser speech and optional user-configured local STT/TTS can play the event contract. They do not reproduce the paper's GPT services, Unity scene, lip-sync system, animation generator, models, assets, benchmark scores, or institute implementation.
+This is independent educational code. TF-IDF, extractive answers, reranking, inferred-date widening, sentence timing, alternating open/closed mouth markers, rule-selected motion labels, and the bundled fictional CC0 Three.js character are explicit baselines/adapters. Browser speech and optional user-configured local STT/TTS can play the event contract. They do not reproduce the paper's GPT services, Unity scene, lip-sync system, animation generator, models, assets, benchmark scores, or institute implementation.
 
 ## Bundled fictional avatar substitution
 
 Two newly generated fictional CC0 humanoids replace the original avatar assets in the browser demo. They provide a 53-bone rig and named ARKit/viseme targets. Motion retargeting adapts source joints to their bind pose; speaking envelopes approximate mouth motion rather than phoneme alignment. The optional recorded BEAT companion inspects public motion, face and audio files prepared locally, independently of the paper's learned algorithm. No dataset recordings or trained weights are bundled.
+
+## Local recorded co-speech integration
+
+The browser application retrieves prepared BEAT body-motion clips with `wild` mode: a current public-demo adapter; the ISMAR paper does not specify this body-motion method. The first `python scripts/start_demo.py` run fetches a small official BVH/TextGrid sample, constructs a nine-clip bank, and fits the local retrieval artifact under ignored `outputs/beat-library/`. Install `scripts/requirements-demo.txt` first. Preparation code and method dependencies are vendored in this repository; no sibling clone, original institute library, full dataset, or pretrained weights are bundled. The article-preserving retrieval, date filtering, citations, and timed answer events remain this application's core. The separate recorded-motion companion remains available for local motion/face/audio inspection.

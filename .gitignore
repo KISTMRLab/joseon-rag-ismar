@@ -13,3 +13,5 @@ weights/
 *.egg-info/
 .pytest_cache/
 static/vendor/
+
+*.pt

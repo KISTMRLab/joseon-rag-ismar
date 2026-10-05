@@ -3,9 +3,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import urlsplit
 from .avatar_http import serve_avatar_asset
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
+from beat_runtime import serve_beat
 
 from .core import (OpenAICompatibleGenerator, OpenAICompatibleRegenerator,
                    RuleRegenerator, answer, retrieve)
@@ -22,6 +26,7 @@ def create_handler(index_path: Path, events_path: Path | None = None,
 
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self):
+            if serve_beat(self, Path(__file__).resolve().parents[2], "wild"): return
             if serve_avatar_asset(self, Path(__file__).resolve().parents[2] / "static"): return
             if self.path == "/":
                 page = page_path.read_bytes()
@@ -32,8 +37,8 @@ def create_handler(index_path: Path, events_path: Path | None = None,
                             "collection_label": "Authored demonstration records" if index["articles"] and all(a["title"].startswith("Authored example:") for a in index["articles"]) else "Article records",
                             "sources": [{"id": a["id"], "title": a["title"], "url": a["source_url"]} for a in index["articles"]],
                             "speech": speech.status()})
-            elif self.path in {"/static/app.js", "/static/avatar.js", "/static/speech.js", "/static/vendor/three.module.js", "/static/vendor/three.core.js"}:
-                asset = static / self.path.removeprefix("/static/")
+            elif urlsplit(self.path).path in {"/static/app.js", "/static/avatar.js", "/static/speech.js", "/static/application-gesture.js", "/static/gesture-library.js", "/static/vendor/three.module.js", "/static/vendor/three.core.js"}:
+                asset = static / urlsplit(self.path).path.removeprefix("/static/")
                 if not asset.is_file(): self.send_error(404); return
                 data = asset.read_bytes(); self.send_response(200)
                 self.send_header("Content-Type", "text/javascript; charset=utf-8")
@@ -42,6 +47,7 @@ def create_handler(index_path: Path, events_path: Path | None = None,
                 self.send_error(404)
 
         def do_POST(self):
+            if serve_beat(self, Path(__file__).resolve().parents[2], "wild"): return
             if speech_route(self, speech): return
             if self.path != "/api/ask":
                 self.send_error(404); return

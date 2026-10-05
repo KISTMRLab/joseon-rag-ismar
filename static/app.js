@@ -1,5 +1,6 @@
-import { createStage } from "/static/avatar.js?v=20261005-gesture7";
-import { Speech } from "/static/speech.js?v=20261005-gesture7";
+import { createStage } from "/static/avatar.js?v=20261005-beat2";
+import { Speech } from "/static/speech.js?v=20261005-beat2";
+import {prepareApplicationMotion,gestureSummary} from "/static/application-gesture.js?v=20261005-beat2";
 
 const $ = selector => document.querySelector(selector);
 const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, char => ({
@@ -11,11 +12,13 @@ let speech = null;
 let playGeneration = 0;
 let delayTimer = null;
 let delayResolve = null;
+let activeMotion = null;
 
 function stopPlayback() {
   playGeneration++;
   if (delayTimer !== null) { clearTimeout(delayTimer); delayTimer = null; delayResolve?.(); delayResolve = null; }
   speech?.cancel();
+  activeMotion?.onEnd();activeMotion=null;stage?.clearMotion();
   stage?.gesture("idle");
   stage?.setSpeech(false);
 }
@@ -75,9 +78,15 @@ $("#play").onclick = async () => {
     await stage.ready;
     for (const event of result.agent.events) {
       if (generation !== playGeneration) return;
-      await speech.speak(event.text, {backend,
-        onStart:()=>{stage.gesture(event.motion);$("#motion").textContent = `Speaking · Gesture: ${event.motion}`;},
-        onEnd:()=>stage.gesture('idle')
+      let selected=null;
+      try{selected=await prepareApplicationMotion(stage,event.text,{mode:'wild'});}
+      catch(error){$("#motion").textContent=`Recorded co-speech unavailable: ${error.message}`;}
+      if(generation!==playGeneration)return;
+      activeMotion=selected?.motion||null;
+      await speech.speak(event.text,{backend,
+        onStart:()=>{activeMotion?.onStart();$("#motion").textContent=selected?`Speaking · ${gestureSummary(selected.data)}`:'Speaking · no recorded co-speech clip';},
+        onProgress:clock=>activeMotion?.onProgress(clock),
+        onEnd:()=>{activeMotion?.onEnd();activeMotion=null;stage.clearMotion();stage.gesture('idle');}
       });
       if (generation !== playGeneration) return;
       // Speech completion already awaited; do not add the estimated duration.

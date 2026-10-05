@@ -63,12 +63,15 @@ From the repository root, using the Python environment described below:
 
 ```sh
 python -m pip install -e .
+python -m pip install -r scripts/requirements-demo.txt
 python scripts/start_demo.py
 ```
 
-Open **http://127.0.0.1:8080/**. Click **Search evidence** on the prefilled question, then **Speak answer** to play the cited answer through the avatar. The launcher selects the bundled inputs automatically; it also builds the small authored index for RAG demos. Avatar demos prepare their pinned Three.js modules on first launch, so that step needs internet access. Model weights and public datasets are optional for the starter workflow and are prepared separately for real-data use.
+Open **http://127.0.0.1:8080/**. Click **Search evidence** on the prefilled question, then **Speak answer** to play the cited answer through the avatar. The launcher prepares pinned Three.js modules and downloads one small official BEAT BVH/TextGrid sample on first run. It builds a nine-clip local bank and fits the Wild Pose Matching adapter under ignored `outputs/beat-library/`; later runs reuse the cache. The first run needs internet access. Original recordings, large datasets, institute assets, and pretrained gesture weights are not distributed.
 
 The 3D presentation uses shared Three.js avatar components and bundled fictional CC0 characters. The paper-specific algorithms and data adapters live in this repository.
+
+The application uses `wild` retrieval for recorded co-speech motion: a current public-demo adapter; the ISMAR paper does not specify this body-motion method. The article-preserving retrieval, date filtering, citations, and timed answer events remain this application's core. The BEAT preparation and retrieval dependencies are vendored in this repository, so no sibling repository checkout is needed. See `scripts/prepare_beat_demo.py` to rebuild the ignored local bank.
 
 <!-- demo-preview:end -->
 
@@ -93,7 +96,7 @@ joseon-agent build examples/articles.jsonl --out outputs/demo.index.json
 joseon-agent serve outputs/demo.index.json --events examples/events.json
 ```
 
-Open `http://127.0.0.1:8766` to inspect cited evidence and play the procedural 3D avatar. The included articles are authored interface examples, not Annals records. For an offline JSON/event check, run `python scripts/verify.py`; `outputs/verify/agent/agent-events.json` contains the engine-neutral integration contract. Motion and mouth timing remain adapter baselines rather than reproduced Unity animation.
+Open `http://127.0.0.1:8766` to inspect cited evidence and play a bundled fictional CC0 3D avatar. The included articles are authored interface examples, not Annals records. For an offline JSON/event check, run `python scripts/verify.py`; `outputs/verify/agent/agent-events.json` contains the engine-neutral integration contract. Motion and mouth timing remain adapter baselines rather than reproduced Unity animation.
 
 ### Bring your own public corpus
 
@@ -135,7 +138,7 @@ joseon-agent serve outputs/my.index.json --events examples/events.json
 
 ### 3D playback and optional local speech
 
-The quickstart prepares pinned Three.js 0.170.0 in ignored `static/vendor/`. The character is generated procedurally in code; no original Unity avatar or animation asset is included. Browser speech works without model downloads. For optional local Kokoro TTS and faster-whisper ASR, run `python -m pip install -e ".[speech]"`, install the English phonemizer requirements from [Kokoro's setup guide](https://github.com/hexgrad/kokoro) (including `espeak-ng` where required), then set `KOKORO_MODEL_DIR` to a local folder containing `config.json`, `kokoro-v1_0.pth`, and `voices/af_heart.pt`. Set `WHISPER_MODEL_DIR` to a local converted faster-whisper folder containing `model.bin`. Audio upload transcribes locally only when ASR is configured; typed input remains available. Timed motion is a research adapter, not recovered Unity animation.
+The quickstart prepares pinned Three.js 0.170.0 in ignored `static/vendor/`. The browser includes two fictional CC0 characters and locally retrieved BEAT motion; no original Unity avatar or animation asset is included. Browser speech works without model downloads. For optional local Kokoro TTS and faster-whisper ASR, run `python -m pip install -e ".[speech]"`, install the English phonemizer requirements from [Kokoro's setup guide](https://github.com/hexgrad/kokoro) (including `espeak-ng` where required), then set `KOKORO_MODEL_DIR` to a local folder containing `config.json`, `kokoro-v1_0.pth`, and `voices/af_heart.pt`. Set `WHISPER_MODEL_DIR` to a local converted faster-whisper folder containing `model.bin`. Audio upload transcribes locally only when ASR is configured; typed input remains available. Timed motion is a research adapter, not recovered Unity animation.
 
 <!-- avatar-recorded-motion:start -->
 ## Bundled characters and recorded public motion
