@@ -100,6 +100,24 @@ joseon-agent serve outputs/demo.index.json --events examples/events.json
 
 Open `http://127.0.0.1:8766` to inspect cited evidence and play a bundled fictional CC0 3D avatar. The included articles are authored interface examples, not Annals records. For an offline JSON/event check, run `python scripts/verify.py`. `outputs/verify/agent/agent-events.json` contains the engine-neutral integration contract (`paperreach.joseon.digital-human.v2`). Each utterance has citation-free `text`, its `citations`, a `section` (`facts`, `analysis` or `abstention`), estimated `start`/`duration`, and a descriptive `motion_label`. In the browser demo, body motion comes from BEAT co-speech retrieval and mouth motion from the speech renderer. The labels are metadata for other engines, not reproduced Unity animation.
 
+### Test with a small sample
+
+A full crawl is not needed to try the agent on real Annals text. Sample mode fetches one lunar month: Sejong year 2, month 5 (1420), which holds 87 articles. It never fetches more than 100.
+
+```powershell
+python scripts/start_demo.py --sample-crawl                 # fetch (or reuse) the sample, build its index, serve it
+joseon-agent crawl --sample                                 # or step by step: data/sejong-sample.jsonl + data/sillok-cache
+joseon-agent build data/sejong-sample.jsonl --out outputs/sejong-sample.index.json
+joseon-agent ask outputs/sejong-sample.index.json "세종 2년 5월 살곶이 다리 공사를 감독한 사람은 누구인가?" --events examples/events.json --agent-out outputs/sample-agent
+```
+
+- **Timing.** On 6 October 2026 the sample took 165 s: 90 requests at the default 1.5 s spacing. Sample mode refuses a shorter `--delay`.
+- **Reruns.** Reruns read the cache. A rerun with every page cached makes no network request and adds nothing. An interrupted sample resumes where it stopped.
+- **Browser.** `--sample-crawl` serves the sample with a Korean sample question pre-filled. **Search evidence** returns cited sentences. **Speak answer** plays them through the avatar without source IDs or bracketed hanja. Korean sentences request a Korean browser voice (`ko-KR`), so install one in the operating system for natural playback; the bundled Kokoro voice is English. A wrong-date question, for example "세종 2년 5월 3일 양화도에서 군함을 시험한 사람은 누구인가?", is answered and spoken as an abstention.
+- **Offline.** `--sample` serves an existing sample without network access. Without either flag the demo serves the bundled authored articles offline. It never crawls unless asked.
+- **Other months.** `--years 28 --month 9` picks another month. `--leap` selects the leap month. `--max-articles N` (at most 100) makes the sample smaller.
+- **Data stays local.** The sample, its cache and its index live under ignored `data/` and `outputs/`. The Annals translation is copyrighted (ⓒ 세종대왕기념사업회), so do not commit, publish or redistribute it. The full crawl below is optional.
+
 ### Build the Sejong Annals corpus
 
 `joseon-agent crawl` builds the corpus locally from the official National Institute of Korean History service, [Annals of the Joseon Dynasty](https://sillok.history.go.kr/). It reads the Sejong month index, each lunar month's article list and each article page, and writes one JSONL record per article:
@@ -110,9 +128,9 @@ joseon-agent crawl --out data/sejong.jsonl --cache data/sillok-cache            
 joseon-agent build data/sejong.jsonl --out outputs/sejong.index.json
 ```
 
-- **Politeness.** Requests are at least 1 s apart (default 1.5 s). The crawler re-reads `robots.txt` on every run and stops on HTTP 401/403 or persistent 429/5xx responses.
+- **Politeness.** Requests are at least 1 s apart (default 1.5 s). The crawler re-reads `robots.txt` before the first network request of every run and stops on HTTP 401/403 or persistent 429/5xx responses.
 - **Resuming.** Every page is cached under `--cache`. Reruns skip article IDs already written. `--offline` parses only the cache.
-- **Scale.** The index lists 391 lunar months, and the paper reports 30,949 Sejong articles, so a full crawl takes at least 13 hours.
+- **Scale.** The index lists 391 lunar months, and the paper reports 30,949 Sejong articles, so a full crawl takes at least 13 hours; start with the sample above.
 - **Dates.** Dates stay lunar. `year` is the printed Western year (세종 N년 = 1418 + N; 즉위년 = 1418), and `month`/`day` are the lunar month and day. `leap_month` and the page's own date line (`date_original`) are kept. `--include-hanja` adds the classical-Chinese original.
 - **Terms.** On 6 October 2026 `robots.txt` returned an HTML not-found page with no crawl directives. The Korean translation is marked "ⓒ 세종대왕기념사업회" and the original text carries a KOGL (공공누리) mark. Follow the site's current terms, keep data under ignored `data/`, and do not redistribute it.
 

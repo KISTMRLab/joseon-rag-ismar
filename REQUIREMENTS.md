@@ -33,7 +33,8 @@ This is independent educational code. The following are explicit baselines or ad
 - fit-or-stop packing and a tiktoken-or-conservative token count;
 - sentence timing and rule-selected motion labels;
 - prompts written from the paper's description;
-- the bundled fictional CC0 Three.js character.
+- the bundled fictional CC0 Three.js character;
+- a one-month test sample in place of the full corpus. `joseon-agent crawl --sample` fetches Sejong year 2, month 5 (87 articles in 165 s on 6 October 2026), holds at most 100 records and runs at no less than 1.5 s per request. `scripts/start_demo.py --sample-crawl` serves it; the default demo stays on the authored offline examples. Crawled text stays under ignored `data/` and is not redistributed, and the full crawl is optional.
 
 In the browser, body motion comes from BEAT co-speech retrieval and mouth motion from the shared speech renderer; the motion labels are metadata only. Browser speech and optional user-configured local STT/TTS can play the event contract. None of this reproduces the paper's GPT services, Unity scene, lip-sync system, animation generator, models, assets, benchmark scores, or institute implementation. The adjunct paper's Table 1 reports the same scores as the related journal article; this repository does not reproduce them.
 

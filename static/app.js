@@ -42,6 +42,8 @@ function ensureStage() {
 
 fetch("/api/corpus").then(response => response.json()).then(corpus => {
   $("#corpus").textContent = `${corpus.collection_label || "Article records"} · ${corpus.articles} records · ${corpus.backend}`;
+  const query = $("#query");
+  if (corpus.suggested_query && query.value === query.defaultValue) query.value = corpus.suggested_query;
 }).catch(error => { $("#corpus").textContent = `Corpus unavailable: ${error.message}`; });
 
 $("#ask").onsubmit = async event => {
@@ -84,7 +86,9 @@ $("#play").onclick = async () => {
       catch(error){$("#motion").textContent=`Recorded co-speech unavailable: ${error.message}`;}
       if(generation!==playGeneration)return;
       activeMotion=selected?.motion||null;
-      await speech.speak(event.text,{backend,
+      // Korean source sentences need a Korean browser voice; the English analysis line keeps en-US.
+      const language=/[가-힣]/.test(event.text)?'ko-KR':'en-US';
+      await speech.speak(event.text,{backend,language,
         onStart:()=>{activeMotion?.onStart();const sources=event.citations?.length?` · sources ${event.citations.join(", ")}`:"";$("#motion").textContent=(selected?`Speaking · ${gestureSummary(selected.data)}`:'Speaking · no recorded co-speech clip')+sources;},
         onProgress:clock=>activeMotion?.onProgress(clock),
         onEnd:()=>{activeMotion?.onEnd();activeMotion=null;stage.clearMotion();stage.gesture('idle');}
