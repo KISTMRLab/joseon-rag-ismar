@@ -52,10 +52,11 @@ Read the paper through its [publisher record](https://doi.org/10.1109/ismar-adju
 
 Please cite the research paper when using its ideas; [download the BibTeX citation](citation.bib). The implementation has its own documented scope.
 
-**Licence.** The code is released under the [MIT licence](LICENSE). It covers the code only: crawled Annals text stays on your machine and follows the source site's terms.
-
 <!-- demo-preview:start -->
 ## Demo preview
+
+> [!IMPORTANT]
+> **Independent re-implementation, not the original system.** The original code, assets and trained models from this research cannot be shared, so this repository rebuilds the published method from the paper using publicly available data, open-source tools and newly made CC0 avatars. The look, motion, voices and accuracy in this demo reflect that substitute tooling and small demo-scale data; they are not representative of the quality of the original work. To see the original system and its reported results, please refer to the [published paper](https://doi.org/10.1109/ismar-adjunct68609.2025.00243).
 
 ![Joseon Rag Ismar runnable demo](demo-assets/preview.png)
 
@@ -201,3 +202,5 @@ python scripts/beat_demo/prepare.py --dataset /path/to/processed/beat --speaker 
 
 Select the resulting `*-motion.json` in the companion. Its metadata carries the humanoid joint mapping and source-to-avatar coordinate conversion. The viewer fits source FK directions from the avatar's bind pose, following the spine explicitly at branching joints. This avoids applying incompatible source bone twist to the MPFB skin; it does not reproduce exact performer twist. The adapter supports Unity proximal/intermediate/distal finger names. Raw BVH remains a public-data alternative; do not mix the two skeleton conventions.
 <!-- avatar-recorded-motion:end -->
+
+Code is MIT licensed; see [LICENSE](LICENSE). It covers the code only: crawled Annals text stays on your machine and follows the source site's terms.
